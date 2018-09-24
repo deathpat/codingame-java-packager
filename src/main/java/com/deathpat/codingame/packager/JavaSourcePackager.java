@@ -21,6 +21,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.igormaznitsa.jcp.removers.JavaCommentsRemover;
 
+/**
+ * 
+ * @author Patrice Meneguzzi
+ *
+ */
 public class JavaSourcePackager {
   private File srcFolder;
 
@@ -36,13 +41,13 @@ public class JavaSourcePackager {
 
   private Set<String> allClassNames;
 
-  private boolean removeEmptyLines = true;
+  private boolean removeEmptyLines;
 
-  private boolean addLineNumber = true;
+  private boolean addLineNumber;
 
-  private boolean removeComments = true;
+  private boolean removeComments;
 
-  private boolean trimAllLines = true;
+  private boolean trimAllLines;
 
   public JavaSourcePackager(File srcFolder, File destinationFolder, String targetClass, String targetClassName,
       String appPackage, boolean addLineNumber, boolean removeComments, boolean removeEmptyLines,
@@ -52,24 +57,24 @@ public class JavaSourcePackager {
     this.targetClass = targetClass;
     this.targetClassName = targetClassName;
     this.appPackage = appPackage;
-    allImports = new HashSet<String>();
-    allClassNames = new HashSet<String>();
+    this.allImports = new HashSet<String>();
+    this.allClassNames = new HashSet<String>();
     this.addLineNumber = addLineNumber;
     this.removeComments = removeComments;
     this.removeEmptyLines = removeEmptyLines;
     this.trimAllLines = trimAllLines;
   }
 
-  public void execute() throws IOException {
+  public void execute() throws IOException, PackagerException {
     allImports.clear();
     allClassNames.clear();
     if (!srcFolder.exists() || !srcFolder.isDirectory()) {
-      throw new RuntimeException("Invalid src folder");
+      throw new PackagerException("Invalid src folder");
     }
     String targetClassFilePath = targetClass.replace(".", "/") + ".java";
     File targetSrcFile = new File(srcFolder, targetClassFilePath);
     if (!targetSrcFile.exists()) {
-      throw new RuntimeException("Invalid target class");
+      throw new PackagerException("Invalid target class");
     }
     if (!destinationFolder.exists()) {
       Files.createDirectories(destinationFolder.toPath());
@@ -89,7 +94,7 @@ public class JavaSourcePackager {
     }
   }
 
-  private String aggregateClasses(File excludedFile) throws IOException {
+  private String aggregateClasses(File excludedFile) throws IOException, PackagerException {
     StringBuilder res = new StringBuilder();
     Collection<File> allFiles = FileUtils.listFiles(srcFolder, null, true);
     for (File file : allFiles) {
@@ -103,10 +108,10 @@ public class JavaSourcePackager {
     return res.toString();
   }
 
-  private String processFileContent(File file) throws IOException {
+  private String processFileContent(File file) throws IOException, PackagerException {
     String className = FilenameUtils.getBaseName(file.getName());
     if (allClassNames.contains(className)) {
-      throw new RuntimeException("Duplicate classname in the project: " + className);
+      throw new PackagerException("Duplicate classname in the project: " + className);
     }
     allClassNames.add(className);
 
@@ -213,7 +218,7 @@ public class JavaSourcePackager {
     return StringUtils.join(res, "\n");
   }
 
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) throws IOException, PackagerException {
     JavaSourcePackager packager = new JavaSourcePackager(
         new File(args[0], args[1]),
         new File(args[0], args[2]),
@@ -224,15 +229,6 @@ public class JavaSourcePackager {
         Boolean.parseBoolean(args[7]),
         Boolean.parseBoolean(args[8]),
         Boolean.parseBoolean(args[9]));
-
-    /*JavaSourcePackager packager = new JavaSourcePackager(
-        new File("D:\\data\\coding\\git_clones\\fantastic-bits\\fantastic-bits\\src\\main\\java"),
-        new File("D:\\data\\coding\\git_clones\\fantastic-bits\\fantastic-bits\\target"),
-        "com.deathpat.codingame.fantasticbits.Main",
-        "Player",
-        "com.deathpat.codingame",
-        false,
-        true);*/
 
     packager.execute();
   }
