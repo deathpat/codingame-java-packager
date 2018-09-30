@@ -49,9 +49,11 @@ public class JavaSourcePackager {
 
   private boolean trimAllLines;
 
+  private List<File> sourceFolders;
+
   public JavaSourcePackager(File srcFolder, File destinationFolder, String targetClass, String targetClassName,
       String appPackage, boolean addLineNumber, boolean removeComments, boolean removeEmptyLines,
-      boolean trimAllLines) {
+      boolean trimAllLines, List<File> dependencyFolders) {
     this.srcFolder = srcFolder;
     this.destinationFolder = destinationFolder;
     this.targetClass = targetClass;
@@ -63,6 +65,7 @@ public class JavaSourcePackager {
     this.removeComments = removeComments;
     this.removeEmptyLines = removeEmptyLines;
     this.trimAllLines = trimAllLines;
+    this.sourceFolders = dependencyFolders == null ? new ArrayList<>() : dependencyFolders;
   }
 
   public void execute() throws IOException, PackagerException {
@@ -71,6 +74,7 @@ public class JavaSourcePackager {
     if (!srcFolder.exists() || !srcFolder.isDirectory()) {
       throw new PackagerException("Invalid src folder");
     }
+    sourceFolders.add(srcFolder);
     String targetClassFilePath = targetClass.replace(".", "/") + ".java";
     File targetSrcFile = new File(srcFolder, targetClassFilePath);
     if (!targetSrcFile.exists()) {
@@ -96,13 +100,15 @@ public class JavaSourcePackager {
 
   private String aggregateClasses(File excludedFile) throws IOException, PackagerException {
     StringBuilder res = new StringBuilder();
-    Collection<File> allFiles = FileUtils.listFiles(srcFolder, null, true);
-    for (File file : allFiles) {
-      if (!file.equals(excludedFile)) {
-        res.append("// ************************************\n");
-        res.append("// ** " + file.getName() + "\n");
-        res.append("// ************************************\n\n");
-        res.append(processFileContent(file)).append("\n\n");
+    for (File sourceFolder : sourceFolders) {
+      Collection<File> allFiles = FileUtils.listFiles(sourceFolder, null, true);
+      for (File file : allFiles) {
+        if (!file.equals(excludedFile)) {
+          res.append("// ************************************\n");
+          res.append("// ** " + file.getName() + "\n");
+          res.append("// ************************************\n\n");
+          res.append(processFileContent(file)).append("\n\n");
+        }
       }
     }
     return res.toString();
@@ -228,7 +234,8 @@ public class JavaSourcePackager {
         Boolean.parseBoolean(args[6]),
         Boolean.parseBoolean(args[7]),
         Boolean.parseBoolean(args[8]),
-        Boolean.parseBoolean(args[9]));
+        Boolean.parseBoolean(args[9]),
+        null);
 
     packager.execute();
   }

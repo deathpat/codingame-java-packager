@@ -1,6 +1,7 @@
 package com.deathpat.codingame.packager;
 
 import java.io.File;
+import java.util.List;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -43,6 +44,9 @@ public class MyMojo extends AbstractMojo {
   @Parameter(property = "trimAllLines", required = true, defaultValue = "false")
   private boolean trimAllLines;
 
+  @Parameter
+  private List<File> sourceFolders;
+
   @Override
   public void execute() throws MojoExecutionException {
     JavaSourcePackager packager = new JavaSourcePackager(
@@ -54,7 +58,8 @@ public class MyMojo extends AbstractMojo {
         showLineNumbers,
         removeComments,
         removeEmptyLines,
-        trimAllLines);
+        trimAllLines,
+        sourceFolders);
 
     try {
       packager.execute();

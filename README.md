@@ -97,6 +97,9 @@ Here the list of all the parameters of the plugin:
     <showLineNumbers>false</showLineNumbers>
     <removeComments>false</removeComments>
     <removeEmptyLines>true</removeEmptyLines>
+    <sourceFolders>
+        <sourceFolder>../lib/src/main/java</sourceFolder>
+    </sourceFolders>
 </configuration>
 ```
 
@@ -117,6 +120,8 @@ Here the list of all the parameters of the plugin:
 - **removeEmptyLines**: if true, removes all empty lines from the source code before packaging. The purpose is to reduce the generated file size. Defaults to true.
 
 - **trimAllLines**: if true, trim all the lines of the source code before packaging. The purpose is to reduce the generated file size. Defaults to false.
+
+- **sourceFolders**: a list of extra source folders to package with the main sources. Useful to share some code between projects.
 
 ## Limitations
 - All the classes of your project should have a unique name. As in the end they are all aggregated in the same file it would cause name collision issues. The plugin will generate an error if this happens.
